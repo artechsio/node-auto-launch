@@ -1,4 +1,4 @@
-isPathAbsolute = require 'path-is-absolute'
+_path   = require 'path'
 
 # Public: The main auto-launch class
 module.exports = class AutoLaunch
@@ -23,7 +23,7 @@ module.exports = class AutoLaunch
         versions = process?.versions
         if path?
             # Verify that the path is absolute
-            throw new Error 'path must be absolute' unless isPathAbsolute path
+            throw new Error 'path must be absolute' unless _path.isAbsolute _path.resolve path
             @opts.appPath = path
 
         else if versions? and (versions.nw? or versions['node-webkit']? or versions.electron?)
@@ -82,13 +82,14 @@ module.exports = class AutoLaunch
         if /darwin/.test process.platform
             @opts.appPath = @fixMacExecPath(@opts.appPath, @opts.mac)
 
-        if @opts.appPath.indexOf('/') isnt -1
-            tempPath = @opts.appPath.split '/'
-            @opts.appName = tempPath[tempPath.length - 1]
-        else if @opts.appPath.indexOf('\\') isnt -1
-            tempPath = @opts.appPath.split '\\'
-            @opts.appName = tempPath[tempPath.length - 1]
-            @opts.appName = @opts.appName.substr(0, @opts.appName.length - '.exe'.length)
+        if !@opts.appName?
+            if @opts.appPath.indexOf('/') isnt -1
+                tempPath = @opts.appPath.split '/'
+                @opts.appName = tempPath[tempPath.length - 1]
+            else if @opts.appPath.indexOf('\\') isnt -1
+                tempPath = @opts.appPath.split '\\'
+                @opts.appName = tempPath[tempPath.length - 1]
+                @opts.appName = @opts.appName.substr(0, @opts.appName.length - '.exe'.length)
 
         if /darwin/.test process.platform
             # Remove ".app" from the appName if it exists
